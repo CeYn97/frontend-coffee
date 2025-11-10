@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import type { MenuItem as MenuItemType } from "../types/menu";
-import { menuApi } from "../services/api";
+import { menuApi, vkApi } from "../services/api";
 import MenuItem from "./MenuItem";
 import "./MenuList.css";
 
@@ -13,8 +13,17 @@ const MenuList: React.FC = () => {
     const fetchMenuItems = async () => {
       try {
         setLoading(true);
-        const items = await menuApi.getAllMenuItems();
-        setMenuItems(items);
+        const [items, photos] = await Promise.all([
+          menuApi.getAllMenuItems(),
+          vkApi.getPhotos(),
+        ]);
+
+        const itemsWithPhotos = items.map((item, index) => ({
+          ...item,
+          imageUrl: photos[index] || item.imageUrl,
+        }));
+
+        setMenuItems(itemsWithPhotos);
         setError(null);
       } catch (err) {
         setError(
